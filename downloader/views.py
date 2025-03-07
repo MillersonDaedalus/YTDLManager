@@ -21,3 +21,7 @@ def requests(request, user):
 def item(request, user, item_id):
     item = DownloadedFiles.objects.get(id__exact=item_id)
     return render(request, "downloader/item.html", context={"item": item})
+
+
+def example(request):
+    return render(request, "downloader/example.html")

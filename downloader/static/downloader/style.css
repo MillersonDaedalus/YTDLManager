@@ -1,0 +1,152 @@
+/* Base Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #e0ffff; /* Light Cyan background */
+    color: #333; /* Dark gray for text */
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+/* Container Styles */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header Styles */
+header {
+    background-color: #00ced1; /* Dark Turquoise */
+    padding: 20px 0;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    margin: 0;
+    color: #fff; /* White text */
+    font-size: 2.5rem;
+}
+
+/* Button Styles */
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #00ced1; /* Dark Turquoise */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #009999; /* Darker Turquoise on hover */
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333; /* Dark gray text */
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #00ced1; /* Dark Turquoise border */
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #009999; /* Darker Turquoise on focus */
+    box-shadow: 0 0 5px rgba(0, 206, 209, 0.5);
+}
+
+/* Card Styles */
+.card {
+    background-color: #fff; /* White background */
+    border: 1px solid #00ced1; /* Dark Turquoise border */
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    margin-top: 0;
+    color: #333; /* Dark gray text */
+}
+
+/* Footer Styles */
+footer {
+    background-color: #00ced1; /* Dark Turquoise */
+    padding: 20px 0;
+    text-align: center;
+    margin-top: 40px;
+}
+
+footer p {
+    margin: 0;
+    color: #fff; /* White text */
+}
+
+/* Link Styles */
+a {
+    color: #00ced1; /* Dark Turquoise */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #009999; /* Darker Turquoise on hover */
+}
+
+a.button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #00ced1; /* Dark Turquoise */
+    color: #fff; /* White text */
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Only background color transitions */
+    text-decoration: none; /* Remove underline */
+}
+
+a.button:hover {
+    background-color: #009999; /* Darker Turquoise on hover */
+}
+
+/* Utility Classes */
+.text-center {
+    text-align: center;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .container {
+        padding: 10px;
+    }
+}
