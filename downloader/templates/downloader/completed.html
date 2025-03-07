@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Completed</title>
+</head>
+<body>
+{% if list_of_items %}
+    <ul>
+    {% for item in list_of_items %}
+        <li><a href="/downloader/{{ user }}/{{item.id}}/">{{ item.title }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No items are available.</p>
+{% endif %}
+</body>
+</html>

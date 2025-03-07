@@ -1,0 +1,16 @@
+{% if items_in_queue %}
+    <ul>
+    {% for item in items_in_queue %}
+        <li><a href="/downloader/{{ item.id }}/">{{ item.url }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No items are available.</p>
+{% endif %}
+
+<h1>Submit a URL to Scrape</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Scrape</button>
+</form>
