@@ -9,8 +9,13 @@
 {% endif %}
 
 <h1>Submit a URL to Scrape</h1>
-<form method="post">
+<form action="download/" method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Scrape</button>
+    {% for field in form %}
+        <div class="fieldWrapper">
+            {{ field.errors }}
+            {{ field.label_tag }} {{ field }}
+        </div>
+    {% endfor %}
+    <input type="submit" value="submit">
 </form>
