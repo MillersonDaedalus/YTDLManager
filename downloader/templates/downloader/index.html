@@ -1,21 +1,70 @@
-{% if items_in_queue %}
-    <ul>
-    {% for item in items_in_queue %}
-        <li><a href="/downloader/{{ item.id }}/">{{ item.url }}</a></li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No items are available.</p>
-{% endif %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit URL for Download</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1>Submit a URL for Download</h1>
+        <nav>
+            <a href="index.html" class="button">Home</a>
+            <a href="download.html" class="button">Download</a>
+            <a href="#" class="button">About</a>
+            <a href="#" class="button">Contact</a>
+        </nav>
+    </header>
 
-<h1>Submit a URL to Scrape</h1>
-<form action="download/" method="post">
-    {% csrf_token %}
-    {% for field in form %}
-        <div class="fieldWrapper">
-            {{ field.errors }}
-            {{ field.label_tag }} {{ field }}
-        </div>
-    {% endfor %}
-    <input type="submit" value="submit">
-</form>
+    <!-- Main Content -->
+    <main class="container">
+        <section class="url-submission">
+            <h2>Submit a URL to Scrape</h2>
+            <form action="download/" method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="fieldWrapper">
+                        {{ field.errors }}
+                        {{ field.label_tag }} {{ field }}
+                    </div>
+                {% endfor %}
+                <input type="submit" value="submit">
+            </form>
+        </section>
+
+<!-- Download Status
+        <section class="download-status">
+            <h2>Download Status</h2>
+            <div id="status-message">
+                 Status messages will appear here
+            </div>
+        </section>
+    </main>
+
+-->
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2023 My Dark Turquoise Website. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript for Handling Form Submission -->
+    <script>
+        document.getElementById('download-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            const urlInput = document.getElementById('url');
+            const statusMessage = document.getElementById('status-message');
+
+            // Simulate a download process
+            statusMessage.innerHTML = `<p class="loading">Downloading ${urlInput.value}...</p>`;
+
+            setTimeout(() => {
+                statusMessage.innerHTML = `<p class="success">Download complete! <a href="#" class="button">Open File</a></p>`;
+            }, 3000); // Simulate a 3-second delay for the download
+        });
+    </script>
+</body>
+</html>

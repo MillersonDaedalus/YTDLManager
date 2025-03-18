@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Turquoise Theme</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Welcome to YTDLManager</h1>
+    </header>
+
+    <section>
+        <div class="container">
+            <div class="card">
+                <h2>Log In</h2>
+                  <form method="post">
+                    {% csrf_token %}
+                    {{ form }}
+                    <button type="submit">Log In</button>
+                  </form>
+            </div>
+
+            <div class="card">
+                <h2>About Us</h2>
+                <p>This is a website</p>
+                <a href="#" class="button">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2023 YTDLManager. All rights reserved.</p>
+    </footer>
+</body>
+</html>

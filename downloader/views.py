@@ -7,6 +7,7 @@ from .models import *
 from .forms import *
 
 # Create your views here.
+
 def index(request):
     queue = DownloadQueue.objects.all()
     form = SubmitUrl
@@ -40,4 +41,4 @@ def item(request, user, item_id):
 
 
 def completed(request):
-    return render(request, "downloader/completed.html")
+    return render(request, "downloader/example.html")
