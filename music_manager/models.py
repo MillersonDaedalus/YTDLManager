@@ -1,17 +1,32 @@
 import ytmusicapi
 from django.db import models
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import CASCADE
 from django.conf import settings
 from ytmusicapi import YTMusic, OAuthCredentials
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 
 def user_auth_upload_path(instance, filename):
-    return f"ytmusic_auth/{instance.user.id}/{filename}"
+    """Generate upload path with proper error handling"""
+    try:
+        if not instance.user_id:
+            raise ValueError("User instance is not saved yet")
+
+        # Ensure filename is safe
+        filename = os.path.basename(filename)
+        path = os.path.join("ytmusic_auth", str(instance.user_id), filename)
+
+        logger.debug(f"Generated upload path: {path}")
+        return path
+
+    except Exception as e:
+        logger.error(f"Error generating upload path: {str(e)}")
+        raise  # Re-raise the exception after logging
 
 
 # Create your models here.
@@ -26,30 +41,47 @@ class YtmusicAuth(models.Model):
 
     @classmethod
     def create_oauth_file(cls, user):
-        # First delete any existing auth for this user
-        cls.objects.filter(user=user).delete()
-        print("setting up")
-        # Generate the path where the file should be saved
-        relative_path = user_auth_upload_path(None, 'oauth.json')
-        full_path = os.path.join(settings.MEDIA_ROOT, relative_path)
-        print("creating path" + full_path)
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(full_path), exist_ok=True)
-        print("path created, running oauth setup")
-        # Create the OAuth file
-        ytmusicapi.setup_oauth(
-            client_id=settings.YTMUSIC_client_id,
-            client_secret=settings.YTMUSIC_client_secret,
-            filepath=full_path,
-            open_browser=True
-        )
-        print("oauth setup complete")
-        # Create and save the model instance
-        auth = cls(user=user)
-        auth.auth_file.name = relative_path  # Set the relative path for FileField
-        auth.save()
+        """Encapsulated OAuth file creation with proper cleanup"""
+        try:
+            logger.info(f"Creating OAuth file for user {user.id}")
 
-        return auth
+            # Delete any existing auth first
+            cls.objects.filter(user=user).delete()
+
+            # Generate paths
+            filename = "oauth.json"
+            relative_path = user_auth_upload_path(cls(user=user), filename)
+            full_path = os.path.join(settings.MEDIA_ROOT, relative_path)
+
+            logger.debug(f"Full target path: {full_path}")
+
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+            # Create the OAuth file
+            ytmusicapi.setup_oauth(
+                client_id=settings.YTMUSIC_client_id,
+                client_secret=settings.YTMUSIC_client_secret,
+                filepath=full_path,
+                open_browser=True
+            )
+            logger.info("OAuth file created successfully")
+
+            # Create model instance
+            auth = cls(user=user)
+            auth.auth_file.name = relative_path
+            auth.save()
+
+            return auth
+
+        except Exception as e:
+            logger.error(f"Failed to create OAuth file: {str(e)}")
+
+            # Clean up if file was created but model wasn't saved
+            if os.path.exists(full_path):
+                os.remove(full_path)
+
+            raise  # Re-raise the exception after cleanup
 
 # join tables from users
 class UserRating(models.Model):
