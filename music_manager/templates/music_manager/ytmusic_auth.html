@@ -1,35 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>YouTube Music Authentication Setup</h1>
+<h2>YouTube Music OAuth Setup</h2>
 
-<div class="auth-setup-instructions">
-    <h2>Setup Instructions</h2>
-    <ol>
-        <li>Click the "Setup New Authentication" button below</li>
-        <li>A new browser window will open to YouTube's authentication page</li>
-        <li>Log in to your YouTube/Google account</li>
-        <li>Grant the requested permissions</li>
-        <li>You'll be redirected back to this application</li>
-    </ol>
-    
-    {% if has_existing_auth %}
-    <div class="existing-auth">
-        <p>You already have YouTube Music authentication setup.</p>
-        <form method="post">
-            {% csrf_token %}
-            <button type="submit" name="use_existing" class="btn btn-secondary">
-                Use Existing Authentication
-            </button>
-        </form>
-    </div>
-    {% endif %}
-    
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" name="setup_new" class="btn btn-primary">
-            Setup New Authentication
-        </button>
-    </form>
+{% if has_auth %}
+<div class="alert alert-info">
+    You already have OAuth authentication set up. Setting up again will replace the existing credentials.
+</div>
+{% endif %}
+
+<p>This will open a browser window to authenticate with YouTube Music.</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Start OAuth Setup</button>
+</form>
+
+<div class="mt-4 alert alert-warning">
+    <strong>Note:</strong> You'll need to have a browser available on this device to complete authentication.
 </div>
 {% endblock %}

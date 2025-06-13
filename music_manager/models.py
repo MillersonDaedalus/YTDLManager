@@ -1,10 +1,13 @@
+import ytmusicapi
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import CASCADE
-from ytmusicapi import ytmusic, OAuthCredentials
+from django.conf import settings
+from ytmusicapi import YTMusic, OAuthCredentials
+import os
 
 
 def user_auth_upload_path(instance, filename):
@@ -14,12 +17,39 @@ def user_auth_upload_path(instance, filename):
 # Create your models here.
 class YtmusicAuth(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ytmusic_auth')
-    auth_file = models.FileField(upload_to='ytmusic_auth/')  # Files will go to MEDIA_ROOT/ytmusic_auth/
+    auth_file = models.FileField(upload_to=user_auth_upload_path)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"YouTube Music Auth for {self.user.username}"
+
+    @classmethod
+    def create_oauth_file(cls, user):
+        # First delete any existing auth for this user
+        cls.objects.filter(user=user).delete()
+        print("setting up")
+        # Generate the path where the file should be saved
+        relative_path = user_auth_upload_path(None, 'oauth.json')
+        full_path = os.path.join(settings.MEDIA_ROOT, relative_path)
+        print("creating path" + full_path)
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+        print("path created, running oauth setup")
+        # Create the OAuth file
+        ytmusicapi.setup_oauth(
+            client_id=settings.YTMUSIC_client_id,
+            client_secret=settings.YTMUSIC_client_secret,
+            filepath=full_path,
+            open_browser=True
+        )
+        print("oauth setup complete")
+        # Create and save the model instance
+        auth = cls(user=user)
+        auth.auth_file.name = relative_path  # Set the relative path for FileField
+        auth.save()
+
+        return auth
 
 # join tables from users
 class UserRating(models.Model):

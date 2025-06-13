@@ -6,39 +6,24 @@ from django.contrib import messages
 from django.db.models import Avg, Count, Q, Exists, OuterRef, Subquery
 from django.contrib.contenttypes.models import ContentType
 from .models import YtmusicAuth, Artist, Album, Song, UserRating, UserFavorite
-from .forms import YTMusicAuthForm
 from ytmusicapi import YTMusic
 
 
 @login_required
 def setup_ytmusic_auth(request):
-    try:
-        existing_auth = YtmusicAuth.objects.get(user=request.user)
-    except YtmusicAuth.DoesNotExist:
-        existing_auth = None
-
     if request.method == 'POST':
-        form = YTMusicAuthForm(request.POST, request.FILES, instance=existing_auth)
-        if form.is_valid():
-            auth = form.save(commit=False)
-            auth.user = request.user
-            auth.save()
+        try:
+            auth = YtmusicAuth.create_oauth_file(request.user)
+            messages.success(request, 'YouTube Music OAuth setup successfully!')
+            return redirect('music_manager:profile')  # Replace with your desired redirect
+        except Exception as e:
+            messages.error(request, f'Failed to setup OAuth: {str(e)}')
+            return redirect('/ytmusic-auth/')
 
-            # Verify the auth file works
-            try:
-                auth_file_path = os.path.join(settings.MEDIA_ROOT, auth.auth_file.name)
-                YTMusic(auth_file_path)
-                messages.success(request, 'YouTube Music authentication setup successfully!')
-                return redirect('music_manager:profile')  # Replace with your desired redirect
-            except Exception as e:
-                auth.delete()  # Remove the invalid auth file
-                messages.error(request, f'Authentication failed: {str(e)}')
-    else:
-        form = YTMusicAuthForm(instance=existing_auth)
-
-    return render(request, 'music_manager/setup_auth.html', {
-        'form': form,
-        'has_auth': existing_auth is not None
+    # GET request - show setup page
+    has_auth = YtmusicAuth.objects.filter(user=request.user).exists()
+    return render(request, 'music_manager/ytmusic_auth.html', {
+        'has_auth': has_auth
     })
 
 
