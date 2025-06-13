@@ -1,16 +1,69 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import CASCADE
 from ytmusicapi import ytmusic, OAuthCredentials
 
+
+def user_auth_upload_path(instance, filename):
+    return f"ytmusic_auth/{instance.user.id}/{filename}"
+
+
 # Create your models here.
 class YtmusicAuth(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ytmusic_auth')
     auth_file = models.FileField(upload_to='ytmusic_auth/')  # Files will go to MEDIA_ROOT/ytmusic_auth/
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"YouTube Music Auth for {self.user.username}"
+
+# join tables from users
+class UserRating(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Generic foreign key approach to rate different content types
+    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    rating = models.IntegerField(
+        validators=[MinValueValidator(-5), MaxValueValidator(5)],
+        help_text="Rating from -5 (strong dislike) to 5 (absolute favorite)"
+    )
+    is_recommended = models.BooleanField(default=False)
+    date_rated = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'content_type', 'object_id')
+        verbose_name = "User Rating"
+        verbose_name_plural = "User Ratings"
+
+    def __str__(self):
+        return f"{self.user.username}'s rating for {self.content_object}"
+
+
+class UserFavorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Generic foreign key approach to favorite different content types
+    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    date_favorited = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'content_type', 'object_id')
+        verbose_name = "User Favorite"
+        verbose_name_plural = "User Favorites"
+
+    def __str__(self):
+        return f"{self.user.username}'s favorite: {self.content_object}"
 
 # -------------------------------
 
@@ -20,6 +73,7 @@ class Artist(models.Model):
     formed_date = models.DateField(blank=True, null=True)
     disbanded_date = models.DateField(blank=True, null=True)
     website = models.URLField(blank=True, null=True)
+
 
     def __str__(self):
         return self.name
@@ -78,46 +132,39 @@ class AlbumSong(models.Model):
         return f"{self.album.title} - Disc {self.disc_number} Track {self.track_number}: {self.song.title}"
 
 
-# join tables from users
-class UserRating(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    # Generic foreign key approach to rate different content types
-    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
-
-    rating = models.IntegerField(
-        validators=[MinValueValidator(-5), MaxValueValidator(5)],
-        help_text="Rating from -5 (strong dislike) to 5 (absolute favorite)"
-    )
-    is_recommended = models.BooleanField(default=False)
-    date_rated = models.DateTimeField(auto_now_add=True)
-    last_updated = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('user', 'content_type', 'object_id')
-        verbose_name = "User Rating"
-        verbose_name_plural = "User Ratings"
-
-    def __str__(self):
-        return f"{self.user.username}'s rating for {self.content_object}"
 
 
-class UserFavorite(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    # Generic foreign key approach to favorite different content types
-    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+def add_to_artist_class(cls):
+    @property
+    def average_rating(self):
+        from django.contrib.contenttypes.models import ContentType
+        from .models import UserRating
+        ct = ContentType.objects.get_for_model(self)
+        ratings = UserRating.objects.filter(content_type=ct, object_id=self.id)
+        if ratings.exists():
+            return ratings.aggregate(models.Avg('rating'))['rating__avg']
+        return None
 
-    date_favorited = models.DateTimeField(auto_now_add=True)
+    @property
+    def is_favorite(self, user):
+        if not user.is_authenticated:
+            return False
+        from django.contrib.contenttypes.models import ContentType
+        from .models import UserFavorite
+        ct = ContentType.objects.get_for_model(self)
+        return UserFavorite.objects.filter(
+            user=user,
+            content_type=ct,
+            object_id=self.id
+        ).exists()
 
-    class Meta:
-        unique_together = ('user', 'content_type', 'object_id')
-        verbose_name = "User Favorite"
-        verbose_name_plural = "User Favorites"
+    cls.average_rating = average_rating
+    cls.is_favorite = is_favorite
+    return cls
 
-    def __str__(self):
-        return f"{self.user.username}'s favorite: {self.content_object}"
+
+# Apply to all three model classes
+Artist = add_to_artist_class(Artist)
+Album = add_to_artist_class(Album)
+Song = add_to_artist_class(Song)

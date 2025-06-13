@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>YouTube Music Authentication Setup</h1>
+
+<div class="auth-setup-instructions">
+    <h2>Setup Instructions</h2>
+    <ol>
+        <li>Click the "Setup New Authentication" button below</li>
+        <li>A new browser window will open to YouTube's authentication page</li>
+        <li>Log in to your YouTube/Google account</li>
+        <li>Grant the requested permissions</li>
+        <li>You'll be redirected back to this application</li>
+    </ol>
+    
+    {% if has_existing_auth %}
+    <div class="existing-auth">
+        <p>You already have YouTube Music authentication setup.</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="use_existing" class="btn btn-secondary">
+                Use Existing Authentication
+            </button>
+        </form>
+    </div>
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="setup_new" class="btn btn-primary">
+            Setup New Authentication
+        </button>
+    </form>
+</div>
+{% endblock %}
