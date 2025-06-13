@@ -3,3 +3,8 @@ Django==5.1.7
 sqlparse==0.5.3
 tzdata==2025.1
 yt-dlp==2025.2.19
+ytmusicapi~=1.10.3
+python-dotenv~=1.1.0
+protobuf~=6.31.0
+google-auth-oauthlib~=1.2.2
+google-api-python-client~=2.170.0

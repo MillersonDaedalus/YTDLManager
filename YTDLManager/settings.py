@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # Load environment variables from .env file
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'downloader.apps.DownloaderConfig',
+    'music_manager',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +133,8 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = "/downloader/"
+
+YTMUSIC_client_id=os.getenv('YTMUSIC_CLIENT_ID')
+YTMUSIC_client_secret=os.getenv('YTMUSIC_CLIENT_SECRET')
+
+FIELD_ENCRYPTION_KEY=os.getenv('FIELD_ENCRYPTION_KEY')
