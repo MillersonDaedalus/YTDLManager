@@ -1,17 +1,12 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Turquoise Theme</title>
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-</head>
-<body>
-    <header>
-        <h1>Welcome to YTDLManager</h1>
-    </header>
+{% extends "master.html" %}
 
+{% block title %}
+  Welcome to YTDLManger
+{% endblock %}
+
+{% block header_title %}Home{% endblock %}
+
+{% block content %}
     <section>
         <div class="container">
             <div class="card">
@@ -30,9 +25,5 @@
             </div>
         </div>
     </section>
+{% endblock %}
 
-    <footer>
-        <p>&copy; 2023 YTDLManager. All rights reserved.</p>
-    </footer>
-</body>
-</html>
