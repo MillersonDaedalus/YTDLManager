@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Your Artists</h1>
+
+<div class="artist-list">
+    {% for artist in subscribed_artists %}
+    <div class="artist-item {% if artist.is_favorite %}favorite{% endif %}">
+        <h2>{{ artist.name }}</h2>
+        <p>Your rating: {{ artist.user_rating|default:"Not rated" }}</p>
+        
+        <div class="artist-albums">
+            <h3>Albums</h3>
+            <ul>
+                {% for album in artist.albums.all %}
+                <li>{{ album.title }} ({{ album.release_date.year }})</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% empty %}
+    <p>You haven't subscribed to any artists yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

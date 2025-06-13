@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Your Likes</h1>
+
+<section class="liked-artists">
+    <h2>Favorite Artists</h2>
+    {% if favorited_artists %}
+    <ul>
+        {% for artist in favorited_artists %}
+        <li>{{ artist.name }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No favorite artists yet.</p>
+    {% endif %}
+</section>
+
+<section class="liked-albums">
+    <h2>Favorite Albums</h2>
+    {% if favorited_albums %}
+    <div class="album-grid">
+        {% for album in favorited_albums %}
+        <div class="album-card">
+            <h3>{{ album.title }}</h3>
+            <p>by {{ album.artists.first.name }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No favorite albums yet.</p>
+    {% endif %}
+</section>
+
+<section class="liked-songs">
+    <h2>Favorite Songs</h2>
+    {% if favorited_songs %}
+    <ol>
+        {% for song in favorited_songs %}
+        <li>{{ song.title }} - {{ song.primary_artists.first.name }}</li>
+        {% endfor %}
+    </ol>
+    {% else %}
+    <p>No favorite songs yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

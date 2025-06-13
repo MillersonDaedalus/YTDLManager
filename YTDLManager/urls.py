@@ -20,7 +20,8 @@ from django.urls import include, path
 from downloader.views import index
 
 urlpatterns = [
-    path("", include("downloader.urls")),
+    path("", include("music_manager.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
+    path("downloads", include("downloader.urls")),
     path('admin/', admin.site.urls),
 ]

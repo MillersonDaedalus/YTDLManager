@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Your Music Dashboard</h1>
+
+<section class="top-rated">
+    <h2>Top Rated Artists</h2>
+    <div class="artist-grid">
+        {% for artist in top_artists %}
+        <div class="artist-card">
+            <h3>{{ artist.name }}</h3>
+            <p>Rating: {{ artist.avg_rating|floatformat:1 }}/5</p>
+        </div>
+        {% empty %}
+        <p>No top-rated artists yet.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="top-songs">
+    <h2>Top Rated Songs</h2>
+    <ol>
+        {% for song in top_songs %}
+        <li>
+            {{ song.title }} - {{ song.primary_artists.first.name }}
+            <span class="rating">{{ song.avg_rating|floatformat:1 }}</span>
+        </li>
+        {% empty %}
+        <li>No top-rated songs yet.</li>
+        {% endfor %}
+    </ol>
+</section>
+{% endblock %}
