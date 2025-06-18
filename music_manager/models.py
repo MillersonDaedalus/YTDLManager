@@ -35,6 +35,7 @@ class YtmusicAuth(models.Model):
     auth_file = models.FileField(upload_to=user_auth_upload_path)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    has_updated_info = models.BooleanField(default=False)
 
     def __str__(self):
         return f"YouTube Music Auth for {self.user.username}"
@@ -60,8 +61,8 @@ class YtmusicAuth(models.Model):
 
             # Create the OAuth file
             ytmusicapi.setup_oauth(
-                client_id=settings.YTMUSIC_client_id,
-                client_secret=settings.YTMUSIC_client_secret,
+                client_id=settings.YTMUSIC_CLIENT_ID,
+                client_secret=settings.YTMUSIC_CLIENT_SECRET,
                 filepath=full_path,
                 open_browser=True
             )
@@ -82,6 +83,22 @@ class YtmusicAuth(models.Model):
                 os.remove(full_path)
 
             raise  # Re-raise the exception after cleanup
+
+    def get_ytmusic_client(self):
+        """
+        Returns an authenticated YTMusic instance using the stored OAuth file
+        """
+        try:
+            # Get the full filesystem path to the auth file
+            auth_path = self.auth_file.path
+            return YTMusic(auth_path, oauth_credentials=OAuthCredentials(settings.YTMUSIC_CLIENT_ID,settings.YTMUSIC_CLIENT_SECRET))
+        except Exception as e:
+            # Handle cases where the file might be missing or corrupted
+            raise YTMusicAuthError(f"Failed to initialize YTMusic client: {str(e)}")
+
+class YTMusicAuthError(Exception):
+    """Custom exception for YTMusic auth related errors"""
+    pass
 
 # join tables from users
 class UserRating(models.Model):
@@ -131,10 +148,8 @@ class UserFavorite(models.Model):
 
 class Artist(models.Model):
     name = models.CharField(max_length=255)
+    channelId = models.CharField(max_length=100, unique=True,)
     bio = models.TextField(blank=True, null=True)
-    formed_date = models.DateField(blank=True, null=True)
-    disbanded_date = models.DateField(blank=True, null=True)
-    website = models.URLField(blank=True, null=True)
 
 
     def __str__(self):

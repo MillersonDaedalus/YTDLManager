@@ -134,8 +134,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = "/downloader/"
 
-YTMUSIC_client_id=os.getenv('YTMUSIC_CLIENT_ID')
-YTMUSIC_client_secret=os.getenv('YTMUSIC_CLIENT_SECRET')
+YTMUSIC_CLIENT_ID=os.getenv('YTMUSIC_CLIENT_ID')
+YTMUSIC_CLIENT_SECRET=os.getenv('YTMUSIC_CLIENT_SECRET')
 
 YT_MUSIC_OAUTH_FILE = BASE_DIR / 'ytmusic_oauth'  # Directory to store OAuth files
 YT_MUSIC_HEADERS_FILE = BASE_DIR / 'ytmusic_headers.json'  # Default headers file

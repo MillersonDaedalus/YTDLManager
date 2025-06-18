@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Avg, Count, Q, Exists, OuterRef, Subquery
 from django.contrib.contenttypes.models import ContentType
-from .models import YtmusicAuth, Artist, Album, Song, UserRating, UserFavorite
+from .models import *
+from .utils.ytmusic import get_user_ytmusic_client
 from ytmusicapi import YTMusic
 
 
@@ -166,3 +167,39 @@ def manage_likes(request):
         'favorited_songs': favorited_songs,
     }
     return render(request, 'music_manager/manage_likes.html', context)
+
+@login_required
+def user_playlists(request):
+    try:
+        ytmusic = get_user_ytmusic_client(request.user)
+        playlists = ytmusic.get_library_playlists()
+        return render(request, 'playlists.html', {'playlists': playlists})
+    except YTMusicAuthError as e:
+        # Redirect to setup page if auth isn't configured
+        return render(request, 'error.html', {
+            'error': str(e),
+            'redirect_url': '/setup-oauth/'
+        })
+
+@login_required
+def user_information(request):
+    try:
+        print("getting user ytmusic client")
+        ytmusic = get_user_ytmusic_client(request.user)
+
+        user_artists = ytmusic.get_library_subscriptions(limit=300)
+        for i in user_artists:
+            artist_info = ytmusic.get_artist(i['browseId'])
+            artist_channelId = artist_info['channelId']
+            if not Artist.objects.filter(channelId=artist_channelId):
+                new_artist = Artist(name=artist_info['name'], channelId=artist_channelId, bio=artist_info['description'])
+                new_artist.save()
+            artist_albums = ytmusic.get_artist_albums(artist_channelId)
+
+        return redirect('/manage_artists/')
+
+
+
+    except YTMusicAuthError as e:
+        # Redirect to setup page if auth isn't configured
+        return redirect('/ytmusic-auth/')
