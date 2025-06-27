@@ -144,22 +144,91 @@ class UserFavorite(models.Model):
     def __str__(self):
         return f"{self.user.username}'s favorite: {self.content_object}"
 
+
+
+
 # -------------------------------
 
 class Artist(models.Model):
     name = models.CharField(max_length=255)
-    channelId = models.CharField(max_length=100, unique=True,)
+    channelId = models.CharField(max_length=255, unique=True,)
+    album_browseId = models.CharField(max_length=255, default='None', null=True)
+    album_params = models.CharField(max_length=255, default='None', null=True)
+    number_of_albums = models.PositiveIntegerField(blank=True, null=True)
+    singles_browseId = models.CharField(max_length=255, default='None', null=True)
+    singles_params = models.CharField(max_length=255, default='None', null=True)
+    number_of_singles = models.PositiveIntegerField(blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
+    need_discography = models.BooleanField(default=True)
 
 
     def __str__(self):
         return self.name
 
 
+
+    def populate(self, artist_info):
+        self.name = artist_info['name']
+        self.channelId = artist_info['channelId']
+        self.bio = artist_info['description']
+        if 'albums' in artist_info and artist_info['albums']['browseId'] is not None:
+            self.album_browseId = artist_info['albums']['browseId']
+            if 'params' in artist_info['albums']:
+                self.album_params = artist_info['albums']['params']
+            else:
+                self.album_params = 'None'
+        else:
+            self.album_browseId = 'None'
+        if 'singles' in artist_info and artist_info['singles']['browseId'] is not None:
+            self.singles_browseId = artist_info['singles']['browseId']
+            if 'params' in artist_info['singles']:
+                self.singles_params = artist_info['singles']['params']
+            else:
+                self.singles_params = 'None'
+        else:
+            self.singles_browseId = 'None'
+
+    def get_discography(self, ytmusic_client):
+        albums = []
+        if self.album_params != 'None':
+            albums.extend(ytmusic_client.get_artist_albums(self.album_browseId, self.album_params))
+        else:
+            artist_info = ytmusic_client.get_artist(self.channelId)
+            if 'albums' in artist_info:
+                albums.extend(artist_info['albums']['results'])
+        if self.singles_params != 'None':
+            albums.extend(ytmusic_client.get_artist_albums(self.singles_browseId, self.singles_params))
+        else:
+            artist_info = ytmusic_client.get_artist(self.channelId)
+            if 'singles' in artist_info:
+                albums.extend(artist_info['singles']['results'])
+
+        if self.need_discography:
+            self.make_albums(albums, ytmusic_client)
+            self.need_discography = False
+            self.save()
+
+
+    def make_albums(self, albums, ytmusic_client):
+        for album in albums:
+            new_album, created = Album.objects.get_or_create(browseId=album['browseId'])
+            print('\t album :', new_album.title, 'new :', created)
+            if created:
+                album_info = ytmusic_client.get_album(album['browseId'])
+                new_album.populate(album_info)
+                new_album.save()
+                new_album.artists.add(self)
+                new_album.save()
+
+
+
 class Album(models.Model):
     title = models.CharField(max_length=255)
     artists = models.ManyToManyField(Artist, related_name='albums')
-    release_date = models.DateField()
+    release_year = models.PositiveIntegerField(blank=True, null=True)
+    number_of_songs = models.PositiveIntegerField(blank=True, null=True)
+    isExplicit = models.BooleanField(default=False)
+    browseId = models.CharField(max_length=255, default='None')
     cover_art = models.ImageField(upload_to='album_covers/', blank=True, null=True)
     label = models.CharField(max_length=255, blank=True, null=True)
     catalog_number = models.CharField(max_length=50, blank=True, null=True)
@@ -178,6 +247,14 @@ class Album(models.Model):
 
     def __str__(self):
         return f"{self.title}"
+
+    def populate(self, album_info):
+        self.title = album_info['title']
+        self.album_type = album_info['type']
+        self.release_year = album_info['year']
+        self.number_of_songs = album_info['trackCount']
+        self.isExplicit = album_info['isExplicit']
+
 
 
 class Song(models.Model):

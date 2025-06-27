@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db.models import Avg, Count, Q, Exists, OuterRef, Subquery
 from django.contrib.contenttypes.models import ContentType
 from .models import *
-from .utils.ytmusic import get_user_ytmusic_client
+from .utils.ytmusic import get_user_ytmusic_client, get_albums, get_number_albums
 from ytmusicapi import YTMusic
 
 
@@ -188,13 +188,16 @@ def user_information(request):
         ytmusic = get_user_ytmusic_client(request.user)
 
         user_artists = ytmusic.get_library_subscriptions(limit=300)
+        current_number = 1
+        max_number = len(user_artists)
         for i in user_artists:
             artist_info = ytmusic.get_artist(i['browseId'])
-            artist_channelId = artist_info['channelId']
-            if not Artist.objects.filter(channelId=artist_channelId):
-                new_artist = Artist(name=artist_info['name'], channelId=artist_channelId, bio=artist_info['description'])
-                new_artist.save()
-            artist_albums = ytmusic.get_artist_albums(artist_channelId)
+            new_artist, created = Artist.objects.get_or_create(channelId=artist_info['channelId'])
+            new_artist.populate(artist_info)
+            print('Artist %s out of %s : %s, New: %s' % (current_number, max_number, new_artist.name, created))
+            new_artist.save()
+            new_artist.get_discography(ytmusic)
+            current_number += 1
 
         return redirect('/manage_artists/')
 
