@@ -10,7 +10,7 @@ from .utils.ytmusic import get_user_ytmusic_client, get_albums, get_number_album
 from ytmusicapi import YTMusic
 
 
-@login_required
+
 def setup_ytmusic_auth(request):
     if request.method == 'POST':
         try:
@@ -28,13 +28,13 @@ def setup_ytmusic_auth(request):
     })
 
 
-@login_required
+
 def ytmusic_callback(request):
     # This would handle the OAuth callback if needed
     # Implementation depends on how ytmusicapi handles the flow
     pass
 
-@login_required
+
 def home(request):
     artist_content_type = ContentType.objects.get_for_model(Artist)
     song_content_type = ContentType.objects.get_for_model(Song)
@@ -93,7 +93,7 @@ def home(request):
     }
     return render(request, 'music_manager/home.html', context)
 
-@login_required
+
 def manage_artists(request):
     artist_content_type = ContentType.objects.get_for_model(Artist)
 
@@ -140,7 +140,7 @@ def manage_artists(request):
     return render(request, 'music_manager/manage_artists.html', context)
 
 
-@login_required
+
 def manage_likes(request):
     # Get all favorited items
     favorites = UserFavorite.objects.filter(
@@ -168,7 +168,7 @@ def manage_likes(request):
     }
     return render(request, 'music_manager/manage_likes.html', context)
 
-@login_required
+
 def user_playlists(request):
     try:
         ytmusic = get_user_ytmusic_client(request.user)
@@ -181,7 +181,7 @@ def user_playlists(request):
             'redirect_url': '/setup-oauth/'
         })
 
-@login_required
+
 def user_information(request):
     try:
         print("getting user ytmusic client")
@@ -195,7 +195,7 @@ def user_information(request):
             new_artist, created = Artist.objects.get_or_create(channelId=artist_info['channelId'])
             new_artist.populate(artist_info)
             print('Artist %s out of %s : %s, New: %s' % (current_number, max_number, new_artist.name, created))
-            new_artist.save()
+            new_artist.save() 
             new_artist.get_discography(ytmusic)
             current_number += 1
 
@@ -206,3 +206,27 @@ def user_information(request):
     except YTMusicAuthError as e:
         # Redirect to setup page if auth isn't configured
         return redirect('/ytmusic-auth/')
+
+
+
+def artists_information(request):
+    artists = Artist.objects.order_by("name")
+
+    context = {'artists' : artists,}
+    return render(request, 'artists.html', context=context)
+
+
+def artist_info(request, artist_id):
+    artist = Artist.objects.get()
+
+    albums = artist.albums.order_by("release_year")
+
+    context = {
+        'artist' : artist,
+        'albums' : albums
+    }
+
+    return render(request, 'artist.html', context=context)
+
+def album_info(request, album_id):
+    album = Album.objects.get()

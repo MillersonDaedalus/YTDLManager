@@ -207,6 +207,7 @@ class Artist(models.Model):
             self.make_albums(albums, ytmusic_client)
             self.need_discography = False
             self.save()
+        return albums
 
 
     def make_albums(self, albums, ytmusic_client):
@@ -232,6 +233,7 @@ class Album(models.Model):
     cover_art = models.ImageField(upload_to='album_covers/', blank=True, null=True)
     label = models.CharField(max_length=255, blank=True, null=True)
     catalog_number = models.CharField(max_length=50, blank=True, null=True)
+    need_tracks = models.BooleanField(default=True)
 
     # For album types (standard, deluxe, re-release, etc.)
     ALBUM_TYPES = [
@@ -255,10 +257,34 @@ class Album(models.Model):
         self.number_of_songs = album_info['trackCount']
         self.isExplicit = album_info['isExplicit']
 
+    def get_tracks(self, ytmusic_client):
+        tracks = ytmusic_client.get_album(self.browseId)['tracks']
+
+        if self.need_tracks:
+            self.make_tracks(tracks)
+            self.need_tracks=False
+            self.save()
+
+        return tracks
+
+    def make_tracks(self, tracks, ytmusic_client):
+        for track in tracks:
+            new_track, created = Song.objects.get_or_create(videoId=track['videoId'])
+            if created:
+                track_info = ytmusic_client.get_song(track['videoId'])
+                new_track.populate(track_info)
+                new_track.save()
+                new_track.albums.add(self)
+                new_track.primary_artists.add(self.artists)
+                new_track.save()
+
+
 
 
 class Song(models.Model):
     title = models.CharField(max_length=255)
+    videoId = models.CharField(max_length=255, default=None)
+    url = models.URLField(default=None)
     albums = models.ManyToManyField(Album, related_name='songs', through='AlbumSong')
     primary_artists = models.ManyToManyField(Artist, related_name='songs_as_primary')
     featured_artists = models.ManyToManyField(Artist, related_name='songs_as_featured', blank=True)
@@ -270,6 +296,12 @@ class Song(models.Model):
     def __str__(self):
         return self.title
 
+    def populate(self, song_info):
+        song_details = song_info['videoDetails']
+        self.title = song_details['title']
+        self.videoId = song_details['videoId']
+        self.url = song_info['microformat']['microformatDataRenderer']['urlCanonical']
+        self.duration = song_details['lengthSeconds']
 
 # Intermediate model for Album-Song relationship to track additional data
 class AlbumSong(models.Model):

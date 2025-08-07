@@ -125,7 +125,7 @@ if __name__ == "__main__":
     #print(ytmusic.get_artist_albums('MPADUCaapER5lCD-70_lAuf05RyQ','ggMHegUIAhoBAg%3D%3D'))
     #print_artist('UC4LjKAw10u60_hifadhaPiw')
     #print_artist('UC08qAR-kyTJb8Xjwbo6C7ZQ')
-
+    """
     ghost = ytmusic.get_artist('UC08qAR-kyTJb8Xjwbo6C7ZQ')
     #print(ghost)
 
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     for album in albums:
         print(album)
         print(ytmusic.get_album(album['browseId']))
-
+    """
 
     #skeleta = ytmusic.get_album('MPREb_3IOalARxXic')
     #for i in skeleta:
@@ -155,3 +155,18 @@ if __name__ == "__main__":
     #for i in satanized:
     #    print(i,':',satanized[i])
 
+
+
+
+    tracks = ytmusic.get_album('MPREb_7qWrLydGJJd')['tracks']
+    print(tracks)
+    song = []
+    for track in tracks:
+        print(track)
+        print()
+        song.append(ytmusic.get_song(track['videoId']))
+
+    print(song)
+    for s in song:
+        print(['videoDetails'])
+        print(s['microformat'])
