@@ -158,15 +158,4 @@ if __name__ == "__main__":
 
 
 
-    tracks = ytmusic.get_album('MPREb_7qWrLydGJJd')['tracks']
-    print(tracks)
-    song = []
-    for track in tracks:
-        print(track)
-        print()
-        song.append(ytmusic.get_song(track['videoId']))
-
-    print(song)
-    for s in song:
-        print(['videoDetails'])
-        print(s['microformat'])
+    print(ytmusic.get_artist('UCKxC9ral9fIJnX07mErNHYw'))

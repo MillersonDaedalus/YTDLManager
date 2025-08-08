@@ -151,6 +151,7 @@ class UserFavorite(models.Model):
 
 class Artist(models.Model):
     name = models.CharField(max_length=255)
+    slug = models.SlugField(null=True)
     channelId = models.CharField(max_length=255, unique=True,)
     album_browseId = models.CharField(max_length=255, default='None', null=True)
     album_params = models.CharField(max_length=255, default='None', null=True)
@@ -225,6 +226,7 @@ class Artist(models.Model):
 
 class Album(models.Model):
     title = models.CharField(max_length=255)
+    slug = models.SlugField(null=True)
     artists = models.ManyToManyField(Artist, related_name='albums')
     release_year = models.PositiveIntegerField(blank=True, null=True)
     number_of_songs = models.PositiveIntegerField(blank=True, null=True)
@@ -283,6 +285,7 @@ class Album(models.Model):
 
 class Song(models.Model):
     title = models.CharField(max_length=255)
+    slug = models.SlugField(null=True)
     videoId = models.CharField(max_length=255, default=None)
     url = models.URLField(default=None)
     albums = models.ManyToManyField(Album, related_name='songs', through='AlbumSong')

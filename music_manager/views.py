@@ -213,20 +213,20 @@ def artists_information(request):
     artists = Artist.objects.order_by("name")
 
     context = {'artists' : artists,}
-    return render(request, 'artists.html', context=context)
+    return render(request, 'music_manager/artists.html', context=context)
 
 
-def artist_info(request, artist_id):
-    artist = Artist.objects.get()
+def artist_info(request, artist_slug):
+    artist = Artist.objects.get(slug=artist_slug)
 
-    albums = artist.albums.order_by("release_year")
+    albums = artist.albums.all()
 
     context = {
         'artist' : artist,
         'albums' : albums
     }
 
-    return render(request, 'artist.html', context=context)
+    return render(request, 'music_manager/artist.html', context=context)
 
 def album_info(request, album_id):
     album = Album.objects.get()
