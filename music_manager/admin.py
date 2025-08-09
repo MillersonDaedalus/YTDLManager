@@ -5,19 +5,21 @@ class AlbumInline(admin.StackedInline):
     model = Album.artists.through
 
 class ArtistAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('name',)}
     inlines = [AlbumInline]
 
 admin.site.register(Artist, ArtistAdmin)
 
+class SongInline(admin.StackedInline):
+    model = Song.albums.through
+
 class AlbumAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('title',)}
+    inlines = [SongInline]
 
 admin.site.register(Album, AlbumAdmin)
 
 class SongAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('title',)}
-    fields = ['videoId']
+    fields = ['title', 'primary_artists', 'videoId']
+
 
 admin.site.register(Song, SongAdmin)
 

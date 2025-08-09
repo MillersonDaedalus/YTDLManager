@@ -207,7 +207,23 @@ def user_information(request):
         # Redirect to setup page if auth isn't configured
         return redirect('/ytmusic-auth/')
 
+def get_albums(request):
+    try:
+        print("getting user ytmusic client")
+        ytmusic = get_user_ytmusic_client(request.user)
 
+        albums = Album.objects.all()
+
+        for i in albums:
+            i.get_tracks(ytmusic)
+
+        return redirect('/manage_artists/')
+
+
+
+    except YTMusicAuthError as e:
+        # Redirect to setup page if auth isn't configured
+        return redirect('/ytmusic-auth/')
 
 def artists_information(request):
     artists = Artist.objects.order_by("name")

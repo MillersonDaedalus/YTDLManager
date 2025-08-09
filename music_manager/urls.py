@@ -14,5 +14,6 @@ urlpatterns = [
     path('user-information/', views.user_information, name='user_information'),
     path('artists/', views.artists_information, name='artists_information'),
     path('artists/<slug:artist_slug>/', views.artist_info, name='artist_info'),
-    path('artists/<slug:artist_slug>/<slug:album_slug>/', views.album_info, name='album_info')
+    path('artists/<slug:artist_slug>/<slug:album_slug>/', views.album_info, name='album_info'),
+    path('manage_artists/get_albums', views.get_albums, name='get_albums'),
 ]
