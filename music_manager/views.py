@@ -228,5 +228,16 @@ def artist_info(request, artist_slug):
 
     return render(request, 'music_manager/artist.html', context=context)
 
-def album_info(request, album_id):
-    album = Album.objects.get()
+def album_info(request, artist_slug, album_slug):
+    album = Album.objects.get(slug=album_slug)
+    ytmusic = get_user_ytmusic_client(request.user)
+    album.get_tracks(ytmusic_client=ytmusic)
+
+    songs = album.songs.all()
+
+    context = {
+        'album' : album,
+        'songs' : songs,
+    }
+
+    return render(request, 'music_manager/album.html', context=context)

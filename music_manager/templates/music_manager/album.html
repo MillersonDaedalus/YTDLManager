@@ -2,12 +2,12 @@
 
 
 {% block content %}
-    <h1>{{ artist.name }}</h1>
+    <h1>{{ album.title }}</h1>
 
-    <h2>Albums</h2>
-    {% for album in albums %}
+    <h2>Songs</h2>
+    {% for song in songs %}
     <div class="artist-card">
-        <h3>{{ album.title }}</h3>
+        <h3>{{ song.title }}</h3>
     </div>
     {% endfor %}
 {% endblock %}

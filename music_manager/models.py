@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import CASCADE
 from django.conf import settings
+from django.utils.text import slugify
 from ytmusicapi import YTMusic, OAuthCredentials
 import os
 import logging
@@ -261,47 +262,56 @@ class Album(models.Model):
 
     def get_tracks(self, ytmusic_client):
         tracks = ytmusic_client.get_album(self.browseId)['tracks']
+        print(tracks)
 
+        print(self.need_tracks)
         if self.need_tracks:
-            self.make_tracks(tracks)
+            self.make_tracks(tracks, ytmusic_client)
             self.need_tracks=False
             self.save()
+            print(self.need_tracks)
 
         return tracks
 
     def make_tracks(self, tracks, ytmusic_client):
         for track in tracks:
+            print(track)
             new_track, created = Song.objects.get_or_create(videoId=track['videoId'])
+            print(created)
             if created:
                 track_info = ytmusic_client.get_song(track['videoId'])
+                print(track_info)
                 new_track.populate(track_info)
                 new_track.save()
                 new_track.albums.add(self)
                 new_track.primary_artists.add(self.artists)
                 new_track.save()
+            print('song :',new_track.title,created)
 
 
 
 
 class Song(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, null=True)
     slug = models.SlugField(null=True)
     videoId = models.CharField(max_length=255, default=None)
-    url = models.URLField(default=None)
+    url = models.URLField(default=None, null=True)
     albums = models.ManyToManyField(Album, related_name='songs', through='AlbumSong')
     primary_artists = models.ManyToManyField(Artist, related_name='songs_as_primary')
     featured_artists = models.ManyToManyField(Artist, related_name='songs_as_featured', blank=True)
-    duration = models.DurationField()
+    duration = models.IntegerField(null=True)
     isrc = models.CharField(max_length=12, blank=True, null=True)  # International Standard Recording Code
     lyrics = models.TextField(blank=True, null=True)
     composition_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return self.title
+        return self.videoId
 
     def populate(self, song_info):
+        print(song_info)
         song_details = song_info['videoDetails']
         self.title = song_details['title']
+        self.slug = slugify(self.title)
         self.videoId = song_details['videoId']
         self.url = song_info['microformat']['microformatDataRenderer']['urlCanonical']
         self.duration = song_details['lengthSeconds']
@@ -310,7 +320,7 @@ class Song(models.Model):
 class AlbumSong(models.Model):
     album = models.ForeignKey(Album, on_delete=models.CASCADE)
     song = models.ForeignKey(Song, on_delete=models.CASCADE)
-    track_number = models.PositiveIntegerField()
+    track_number = models.PositiveIntegerField(null=True)
     disc_number = models.PositiveIntegerField(default=1)
 
     class Meta:

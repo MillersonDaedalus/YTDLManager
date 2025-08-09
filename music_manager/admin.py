@@ -17,9 +17,10 @@ admin.site.register(Album, AlbumAdmin)
 
 class SongAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
+    fields = ['videoId']
 
 admin.site.register(Song, SongAdmin)
 
 # Register your models here.
-admin.site.register([YtmusicAuth, UserFavorite, UserRating])
+admin.site.register([YtmusicAuth, AlbumSong, UserFavorite, UserRating])
 
